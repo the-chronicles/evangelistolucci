@@ -1,22 +1,4 @@
 {
-  "/api/contact/route": "app/api/contact/route.js",
-  "/api/devotionals/route": "app/api/devotionals/route.js",
-  "/api/enquiries/route": "app/api/enquiries/route.js",
-  "/api/sermons/route": "app/api/sermons/route.js",
-  "/api/subscribe/route": "app/api/subscribe/route.js",
-  "/api/subscribers/route": "app/api/subscribers/route.js",
-  "/_not-found/page": "app/_not-found/page.js",
-  "/about/page": "app/about/page.js",
-  "/admin/login/page": "app/admin/login/page.js",
-  "/admin/page": "app/admin/page.js",
-  "/books/[slug]/page": "app/books/[slug]/page.js",
-  "/books/page": "app/books/page.js",
-  "/contact/page": "app/contact/page.js",
-  "/devotional/page": "app/devotional/page.js",
-  "/devotional/[slug]/page": "app/devotional/[slug]/page.js",
-  "/music/page": "app/music/page.js",
   "/page": "app/page.js",
-  "/privacy/page": "app/privacy/page.js",
-  "/sermons/[slug]/page": "app/sermons/[slug]/page.js",
-  "/sermons/page": "app/sermons/page.js"
+  "/about/page": "app/about/page.js"
 }
