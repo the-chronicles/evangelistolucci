@@ -1,0 +1,53 @@
+[
+  {
+    "name": "Seun",
+    "email": "seun@gmail.com",
+    "phone": "",
+    "category": "preach_minister",
+    "organization": "",
+    "eventDate": "dsd",
+    "location": "ddd",
+    "message": "skdjd",
+    "id": "enq-1792764742915",
+    "submittedAt": "2026-10-23T14:12:22.915Z",
+    "status": "new"
+  },
+  {
+    "name": "Pastor Michael Ade",
+    "email": "michael@revivalsummit.org",
+    "category": "preach_minister",
+    "organization": "Global Revival Summit",
+    "eventDate": "2026-12-10",
+    "location": "Manchester, UK",
+    "message": "We formally request the ministration of Evangelist Tolucci for our international ministers conference.",
+    "id": "enq-1792704845472",
+    "submittedAt": "2026-10-22T21:34:05.472Z",
+    "status": "new"
+  },
+  {
+    "id": "enq-101",
+    "name": "Pastor Samuel Kalu",
+    "email": "pastor.samuel@revivalassembly.org",
+    "phone": "+234 803 123 4567",
+    "category": "preach_minister",
+    "organization": "Revival Assembly Church, Lagos",
+    "eventDate": "2026-11-15",
+    "location": "Victoria Island, Lagos, Nigeria",
+    "message": "Greetings in Jesus name. We would like to officially invite Evangelist Tolucci to minister at our upcoming 3-day Annual Believers Camp Meeting.",
+    "submittedAt": "2026-10-20T21:34:05.471Z",
+    "status": "new"
+  },
+  {
+    "id": "enq-102",
+    "name": "Deborah Okoro",
+    "email": "deborah@worshipnetwork.uk",
+    "phone": "+44 7700 900123",
+    "category": "conference",
+    "organization": "UK Kingdom Worship Collective",
+    "eventDate": "2026-12-05",
+    "location": "London, United Kingdom",
+    "message": "We are organizing the European Kingdom Sounds Summit and would love Evangelist Tolucci to keynote on prophetic worship and revival songs.",
+    "submittedAt": "2026-10-18T21:34:05.471Z",
+    "status": "reviewed"
+  }
+]
