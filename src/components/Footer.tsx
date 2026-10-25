@@ -63,7 +63,7 @@ export default function Footer() {
           <div className="lg:col-span-5 space-y-4">
             <Link href="/" className="inline-block">
               <img
-                src="/images/TTT.png"
+                src="/images/logo.png"
                 alt="tolucci logo"
                 className="w-32 h-auto"
               />
