@@ -41,7 +41,7 @@ export default function Navbar() {
           {/* Brand Mark */}
           <Link href="/" className="flex flex-col group">
             <img
-              src="/images/TTT.png"
+              src="/images/logo.png"
               alt="tolucci logo"
               className="w-32 h-auto"
             />
