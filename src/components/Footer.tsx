@@ -233,7 +233,7 @@ export default function Footer() {
             >
               Privacy Policy
             </Link>
-            <Link
+            {/* <Link
               href="/contact"
               className="hover:text-[#d6cec3] transition-colors"
             >
@@ -244,7 +244,7 @@ export default function Footer() {
               className="hover:text-[#d6cec3] transition-colors"
             >
               Staff Portal
-            </Link>
+            </Link> */}
           </div>
         </div>
       </div>

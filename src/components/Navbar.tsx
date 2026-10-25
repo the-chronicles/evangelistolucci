@@ -131,7 +131,7 @@ export default function Navbar() {
               );
             })}
           </nav>
-          <div className="pt-4 flex items-center justify-between text-xs text-[#9e978e]">
+          {/* <div className="pt-4 flex items-center justify-between text-xs text-[#9e978e]">
             <Link
               href="/admin"
               onClick={() => setMobileMenuOpen(false)}
@@ -140,7 +140,7 @@ export default function Navbar() {
               <Shield className="w-3.5 h-3.5" /> Staff Portal
             </Link>
             <span>v1.0 Official</span>
-          </div>
+          </div> */}
         </div>
       )}
     </header>
