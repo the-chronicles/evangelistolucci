@@ -1,5 +1,15 @@
 [
   {
+    "email": "test@gmail.com",
+    "preferences": {
+      "dailyDevotional": true,
+      "ministryNewsletter": true
+    },
+    "source": "first_visit_modal",
+    "id": "sub-1793130197828-4n24",
+    "subscribedAt": "2026-10-27T19:43:17.828Z"
+  },
+  {
     "email": "ccc@gmail.com",
     "preferences": {
       "dailyDevotional": true,

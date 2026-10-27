@@ -99,6 +99,19 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
+## Subscriber Storage
+
+Production deployments use Upstash Redis for subscriber records because serverless deployment filesystems are read-only and do not persist between requests. Add these environment variables to the deployment:
+
+```text
+UPSTASH_REDIS_REST_URL=https://your-database.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your-rest-token
+```
+
+Configure both variables in the hosting provider and redeploy. Keep the token private; do not commit it to the repository. Local development continues to use `data/subscribers.json` when the Upstash variables are not set.
+
+---
+
 ## 🔐 Admin Dashboard Access
 
 - **URL:** [http://localhost:3000/admin](http://localhost:3000/admin)

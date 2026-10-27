@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const result = addSubscriber({
+    const result = await addSubscriber({
       name: name?.trim() || undefined,
       email: email.trim().toLowerCase(),
       preferences: {
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('Subscription error:', error);
     return NextResponse.json(
-      { error: 'An unexpected error occurred. Please try again.' },
+      { error: 'Subscription storage is temporarily unavailable. Please try again later.' },
       { status: 500 }
     );
   }

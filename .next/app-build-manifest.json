@@ -1,171 +1,20 @@
 {
   "pages": {
-    "/_not-found/page": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/chunks/app/_not-found/page-5cb44d814c97bf18.js"
-    ],
     "/layout": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/css/9aba26825d15900a.css",
-      "static/chunks/53c13509-670971be0f91ccff.js",
-      "static/chunks/690-0809685d439d04f0.js",
-      "static/chunks/667-470a30371b879235.js",
-      "static/chunks/app/layout-a80313a5b1e84fe1.js"
-    ],
-    "/api/devotionals/route": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/chunks/app/api/devotionals/route-1cad30b05d260e65.js"
-    ],
-    "/api/contact/route": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/chunks/app/api/contact/route-1cad30b05d260e65.js"
-    ],
-    "/api/enquiries/route": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/chunks/app/api/enquiries/route-1cad30b05d260e65.js"
-    ],
-    "/api/subscribers/route": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/chunks/app/api/subscribers/route-1cad30b05d260e65.js"
-    ],
-    "/api/subscribe/route": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/chunks/app/api/subscribe/route-1cad30b05d260e65.js"
-    ],
-    "/api/sermons/route": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/chunks/app/api/sermons/route-1cad30b05d260e65.js"
-    ],
-    "/admin/page": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/chunks/533-7686cc882a38ef1e.js",
-      "static/chunks/app/admin/page-963018ffb3db14e3.js"
-    ],
-    "/admin/login/page": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/chunks/app/admin/login/page-26221c3aa9a82a6a.js"
-    ],
-    "/about/page": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/chunks/690-0809685d439d04f0.js",
-      "static/chunks/app/about/page-273dcfec5b9065c3.js"
-    ],
-    "/books/[slug]/page": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/chunks/690-0809685d439d04f0.js",
-      "static/chunks/app/books/[slug]/page-74e351bdf98ab086.js"
-    ],
-    "/books/page": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/chunks/690-0809685d439d04f0.js",
-      "static/chunks/app/books/page-dfd0dc75cd49a438.js"
-    ],
-    "/devotional/page": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/chunks/app/devotional/page-c200a1bc97511498.js"
-    ],
-    "/contact/page": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/chunks/53c13509-670971be0f91ccff.js",
-      "static/chunks/631-89f816bc7355adae.js",
-      "static/chunks/app/contact/page-6fb51c3ddc488c52.js"
-    ],
-    "/music/page": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/chunks/53c13509-670971be0f91ccff.js",
-      "static/chunks/288-7cdc6594c0ed19e1.js",
-      "static/chunks/app/music/page-b1fc28e08be9e3af.js"
-    ],
-    "/devotional/[slug]/page": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/chunks/690-0809685d439d04f0.js",
-      "static/chunks/app/devotional/[slug]/page-dbb082521a76f6bc.js"
-    ],
-    "/sermons/[slug]/page": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/chunks/690-0809685d439d04f0.js",
-      "static/chunks/app/sermons/[slug]/page-1c9461a9d34bcf02.js"
-    ],
-    "/privacy/page": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/chunks/690-0809685d439d04f0.js",
-      "static/chunks/app/privacy/page-72c4bdbcc574be09.js"
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/layout.css",
+      "static/chunks/app/layout.js"
     ],
     "/page": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/chunks/53c13509-670971be0f91ccff.js",
-      "static/chunks/690-0809685d439d04f0.js",
-      "static/chunks/288-7cdc6594c0ed19e1.js",
-      "static/chunks/970-8b73c8ad9d379cae.js",
-      "static/chunks/app/page-9ffed57e5b67d43f.js"
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/page.js"
     ],
-    "/sermons/page": [
-      "static/chunks/webpack-1bd99802352089c3.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-b1e2483a7e02feee.js",
-      "static/chunks/main-app-fb792c1fd00d56f6.js",
-      "static/chunks/970-8b73c8ad9d379cae.js",
-      "static/chunks/app/sermons/page-8a8936d51f6d6ced.js"
+    "/api/subscribe/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/subscribe/route.js"
     ]
   }
 }
