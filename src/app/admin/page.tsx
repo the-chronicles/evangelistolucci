@@ -482,9 +482,9 @@ export default function AdminDashboardPage() {
         <header className="sticky top-0 z-20 border-b border-white/[0.08] bg-[#100f0e]/95 px-4 py-4 backdrop-blur sm:px-7 lg:px-10">
           <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <span className="grid size-9 place-items-center rounded-xl bg-[#c8a97e]/15 text-[#c8a97e] md:hidden">
+              {/* <span className="grid size-9 place-items-center rounded-xl bg-[#c8a97e]/15 text-[#c8a97e] md:hidden">
                 <ShieldCheck className="size-4" />
-              </span>
+              </span> */}
               <div>
                 <p className="text-xs text-[#8c857c]">Ministry workspace</p>
                 <h1 className="mt-0.5 text-lg font-semibold tracking-tight">
@@ -529,6 +529,16 @@ export default function AdminDashboardPage() {
               {label}
             </button>
           ))}
+          <a
+            href="https://da42.host-ww.net/roundcube/?_task=mail&_mbox=INBOX"
+            target="_blank"
+            rel="noreferrer"
+            className="flex shrink-0 items-center gap-2 rounded-lg border border-[#c8a97e]/30 bg-[#c8a97e]/10 px-3 py-2 text-xs font-medium text-[#dec49d]"
+          >
+            <Mail className="size-3.5" />
+            Open mail
+            <ArrowUpRight className="size-3.5" />
+          </a>
         </nav>
 
         <main className="mx-auto max-w-[1440px] space-y-7 px-4 py-7 sm:px-7 sm:py-9 lg:px-10">
