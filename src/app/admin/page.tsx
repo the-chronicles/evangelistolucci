@@ -1,882 +1,1258 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  ArrowDownToLine,
+  ArrowUpRight,
+  BookOpen,
+  CalendarDays,
+  Check,
+  ChevronDown,
+  Clock3,
+  LayoutDashboard,
+  LogOut,
+  Mail,
+  MapPin,
+  MessageSquareText,
+  Plus,
+  RefreshCw,
+  ShieldCheck,
+  Trash2,
+  Users,
+  Video,
+  type LucideIcon,
+} from "lucide-react";
 import { initialDevotionals } from "@/data/devotionals";
 import { initialSermons } from "@/data/sermons";
-import { initialBooks } from "@/data/books";
-import { initialMusic } from "@/data/music";
 import { Subscriber, ContactEnquiry, Devotional, Sermon } from "@/types";
-import {
-  LayoutDashboard,
-  BookOpen,
-  Radio,
-  Users,
-  MessageSquare,
-  Music,
-  Settings,
-  Plus,
-  CheckCircle,
-  Clock,
-  Download,
-  Search,
-  ExternalLink,
-  Shield,
-  LogOut,
-  RefreshCw,
-  Sparkles,
-} from "lucide-react";
+
+type AdminTab =
+  | "overview"
+  | "devotionals"
+  | "sermons"
+  | "subscribers"
+  | "enquiries";
+
+const navigation: { id: AdminTab; label: string; icon: LucideIcon }[] = [
+  { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "enquiries", label: "Enquiries", icon: MessageSquareText },
+  { id: "subscribers", label: "Subscribers", icon: Users },
+  { id: "devotionals", label: "Devotionals", icon: BookOpen },
+  { id: "sermons", label: "Sermons", icon: Video },
+];
+
+const panelClass = "rounded-2xl border border-white/[0.08] bg-[#171513]";
+const inputClass =
+  "w-full rounded-xl border border-white/[0.1] bg-[#100f0e] px-3.5 py-3 text-sm text-[#f7f4ee] outline-none transition placeholder:text-[#716b63] focus:border-[#c8a97e]";
+
+function formatDate(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? "Date unavailable"
+    : date.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+}
+
+function StatCard({
+  label,
+  value,
+  note,
+  icon: Icon,
+  accent = false,
+}: {
+  label: string;
+  value: number;
+  note: string;
+  icon: LucideIcon;
+  accent?: boolean;
+}) {
+  return (
+    <article className={`${panelClass} p-5 sm:p-6`}>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm text-[#aaa39a]">{label}</p>
+          <p className="mt-4 text-3xl font-semibold tracking-tight text-[#f7f4ee]">
+            {value.toLocaleString()}
+          </p>
+        </div>
+        <span
+          className={`grid size-10 place-items-center rounded-xl ${
+            accent
+              ? "bg-[#c8a97e]/15 text-[#c8a97e]"
+              : "bg-white/[0.05] text-[#aaa39a]"
+          }`}
+        >
+          <Icon className="size-5" />
+        </span>
+      </div>
+      <p className="mt-3 text-xs text-[#8c857c]">{note}</p>
+    </article>
+  );
+}
+
+function EmptyState({ title, detail }: { title: string; detail: string }) {
+  return (
+    <div className="grid min-h-52 place-items-center px-6 py-10 text-center">
+      <div>
+        <span className="mx-auto grid size-11 place-items-center rounded-full bg-white/[0.05] text-[#c8a97e]">
+          <Check className="size-5" />
+        </span>
+        <h3 className="mt-4 text-sm font-medium text-[#f7f4ee]">{title}</h3>
+        <p className="mt-1.5 max-w-sm text-sm leading-6 text-[#8c857c]">
+          {detail}
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<
-    | "overview"
-    | "devotionals"
-    | "sermons"
-    | "subscribers"
-    | "enquiries"
-    | "settings"
-  >("overview");
-
+  const [activeTab, setActiveTab] = useState<AdminTab>("overview");
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [enquiries, setEnquiries] = useState<ContactEnquiry[]>([]);
   const [devotionals, setDevotionals] =
     useState<Devotional[]>(initialDevotionals);
   const [sermons, setSermons] = useState<Sermon[]>(initialSermons);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // New Devotional Form State
-  const [newDevTitle, setNewDevTitle] = useState("");
-  const [newDevScripture, setNewDevScripture] = useState("");
-  const [newDevScriptureText, setNewDevScriptureText] = useState("");
-  const [newDevExcerpt, setNewDevExcerpt] = useState("");
-  const [newDevContent, setNewDevContent] = useState("");
-  const [newDevPrayer, setNewDevPrayer] = useState("");
+  const [devTitle, setDevTitle] = useState("");
+  const [devScripture, setDevScripture] = useState("");
+  const [devScriptureText, setDevScriptureText] = useState("");
+  const [devExcerpt, setDevExcerpt] = useState("");
+  const [devContent, setDevContent] = useState("");
+  const [devPrayer, setDevPrayer] = useState("");
   const [devSaving, setDevSaving] = useState(false);
-  const [devMsg, setDevMsg] = useState("");
+  const [devMessage, setDevMessage] = useState("");
 
-  // New Sermon Form State
-  const [newSermonTitle, setNewSermonTitle] = useState("");
-  const [newSermonTopic, setNewSermonTopic] = useState("Revival");
-  const [newSermonYoutubeId, setNewSermonYoutubeId] = useState("");
-  const [newSermonDesc, setNewSermonDesc] = useState("");
+  const [sermonTitle, setSermonTitle] = useState("");
+  const [sermonTopic, setSermonTopic] = useState("Revival");
+  const [sermonYoutubeId, setSermonYoutubeId] = useState("");
+  const [sermonDescription, setSermonDescription] = useState("");
   const [sermonSaving, setSermonSaving] = useState(false);
-  const [sermonMsg, setSermonMsg] = useState("");
+  const [sermonMessage, setSermonMessage] = useState("");
 
-  // Check auth
+  const newEnquiryCount = useMemo(
+    () => enquiries.filter((enquiry) => enquiry.status === "new").length,
+    [enquiries],
+  );
+  const recentEnquiries = enquiries.slice(0, 5);
+  const recentSubscribers = subscribers.slice(0, 5);
+
   useEffect(() => {
-    const isAuth = sessionStorage.getItem("tolucci_admin_authenticated");
-    if (!isAuth) {
+    if (!sessionStorage.getItem("tolucci_admin_authenticated")) {
       router.push("/admin/login");
       return;
     }
-
-    // Fetch live subscribers and enquiries
-    fetchData();
+    void fetchData();
   }, [router]);
 
-  const fetchData = async () => {
+  async function fetchData() {
     setLoading(true);
+    setError("");
     try {
-      const [subRes, enqRes] = await Promise.all([
+      const [subscribersResponse, enquiriesResponse] = await Promise.all([
         fetch("/api/subscribers"),
         fetch("/api/enquiries"),
       ]);
-      if (subRes.ok) {
-        const subData = await subRes.json();
-        setSubscribers(subData.subscribers || []);
+      if (!subscribersResponse.ok || !enquiriesResponse.ok) {
+        throw new Error("The dashboard data could not be loaded.");
       }
-      if (enqRes.ok) {
-        const enqData = await enqRes.json();
-        setEnquiries(enqData.enquiries || []);
-      }
-    } catch (err) {
-      console.warn("Failed to fetch data in admin:", err);
+      const [subscriberData, enquiryData] = await Promise.all([
+        subscribersResponse.json(),
+        enquiriesResponse.json(),
+      ]);
+      setSubscribers(subscriberData.subscribers ?? []);
+      setEnquiries(enquiryData.enquiries ?? []);
+    } catch (loadError) {
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : "The dashboard data could not be loaded.",
+      );
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  const handleStatusChange = async (
+  async function handleStatusChange(
     enquiryId: string,
-    newStatus: ContactEnquiry["status"],
-  ) => {
+    status: ContactEnquiry["status"],
+  ) {
+    setError("");
     try {
-      const res = await fetch("/api/enquiries", {
+      const response = await fetch("/api/enquiries", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: enquiryId, status: newStatus }),
+        body: JSON.stringify({ id: enquiryId, status }),
       });
-      if (res.ok) {
-        setEnquiries((prev) =>
-          prev.map((e) =>
-            e.id === enquiryId ? { ...e, status: newStatus } : e,
-          ),
-        );
+      if (!response.ok) {
+        throw new Error("This enquiry status could not be updated.");
       }
-    } catch (err) {
-      console.error("Failed to update status", err);
+      setEnquiries((current) =>
+        current.map((enquiry) =>
+          enquiry.id === enquiryId ? { ...enquiry, status } : enquiry,
+        ),
+      );
+    } catch (statusError) {
+      setError(
+        statusError instanceof Error
+          ? statusError.message
+          : "This enquiry status could not be updated.",
+      );
     }
-  };
+  }
 
-  const handleCreateDevotional = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newDevTitle || !newDevContent) return;
+  async function handleDeleteEnquiry(enquiryId: string) {
+    if (!window.confirm("Delete this enquiry? This cannot be undone.")) {
+      return;
+    }
+    setError("");
+    try {
+      const response = await fetch("/api/enquiries", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: enquiryId }),
+      });
+      if (!response.ok) {
+        throw new Error("This enquiry could not be deleted.");
+      }
+      setEnquiries((current) =>
+        current.filter((enquiry) => enquiry.id !== enquiryId),
+      );
+    } catch (deleteError) {
+      setError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : "This enquiry could not be deleted.",
+      );
+    }
+  }
+
+  async function handleDeleteSubscriber(subscriberId: string) {
+    setError("");
+    try {
+      const response = await fetch("/api/subscribers", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: subscriberId }),
+      });
+      if (!response.ok) {
+        throw new Error("This subscriber could not be deleted.");
+      }
+      setSubscribers((current) =>
+        current.filter((subscriber) => subscriber.id !== subscriberId),
+      );
+    } catch (deleteError) {
+      setError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : "This subscriber could not be deleted.",
+      );
+    }
+  }
+
+  async function handleCreateDevotional(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setDevSaving(true);
-    setDevMsg("");
-
-    const newDev: Devotional = {
+    setDevMessage("");
+    const slug = devTitle
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+    const devotional: Devotional = {
       id: `dev-${Date.now()}`,
-      slug: newDevTitle
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, ""),
-      title: newDevTitle,
-      date: new Date().toISOString().split("T")[0] as string,
-      scriptureReference: newDevScripture || "Leviticus 6:13",
-      scriptureText:
-        newDevScriptureText ||
-        "The fire must be kept burning on the altar continuously; it must not go out.",
-      excerpt: newDevExcerpt || newDevContent.slice(0, 140) + "...",
-      content: newDevContent.split("\n\n").filter(Boolean),
-      reflectionQuestions: [
-        "How will you maintain the secret place altar today?",
-      ],
-      prayer:
-        newDevPrayer ||
-        "Lord, keep my heart set on fire for Your glory. In Jesus name, Amen.",
-      tags: ["Revival", "Devotional", "Prayer"],
+      slug,
+      title: devTitle,
+      date: new Date().toISOString().slice(0, 10),
+      scriptureReference: devScripture,
+      scriptureText: devScriptureText,
+      excerpt: devExcerpt || devContent.slice(0, 140),
+      content: devContent.split(/\n\s*\n/).filter(Boolean),
+      reflectionQuestions: [],
+      prayer: devPrayer,
+      tags: [],
       author: "Evangelist Tolucci",
-      readingTimeMinutes: 4,
+      readingTimeMinutes: Math.max(
+        1,
+        Math.ceil(devContent.split(/\s+/).length / 200),
+      ),
     };
 
     try {
-      const res = await fetch("/api/devotionals", {
+      const response = await fetch("/api/devotionals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newDev),
+        body: JSON.stringify(devotional),
       });
-      if (res.ok) {
-        setDevotionals([newDev, ...devotionals]);
-        setDevMsg("Devotional published successfully!");
-        setNewDevTitle("");
-        setNewDevScripture("");
-        setNewDevScriptureText("");
-        setNewDevExcerpt("");
-        setNewDevContent("");
-        setNewDevPrayer("");
+      if (!response.ok) {
+        throw new Error("The devotional could not be published.");
       }
-    } catch {
-      setDevMsg("Failed to save devotional");
+      setDevotionals((current) => [devotional, ...current]);
+      setDevMessage("Devotional published.");
+      setDevTitle("");
+      setDevScripture("");
+      setDevScriptureText("");
+      setDevExcerpt("");
+      setDevContent("");
+      setDevPrayer("");
+    } catch (saveError) {
+      setDevMessage(
+        saveError instanceof Error
+          ? saveError.message
+          : "The devotional could not be published.",
+      );
     } finally {
       setDevSaving(false);
     }
-  };
+  }
 
-  const handleCreateSermon = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newSermonTitle || !newSermonYoutubeId) return;
+  async function handleCreateSermon(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setSermonSaving(true);
-    setSermonMsg("");
-
-    const newSermon: Sermon = {
+    setSermonMessage("");
+    const slug = sermonTitle
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+    const sermon: Sermon = {
       id: `sermon-${Date.now()}`,
-      slug: newSermonTitle
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, ""),
-      title: newSermonTitle,
-      date: new Date().toISOString().split("T")[0] as string,
-      topic: newSermonTopic,
-      scriptureReferences: ["Joel 2:28", "Acts 1:8"],
-      description: newSermonDesc,
-      youtubeId: newSermonYoutubeId,
-      duration: "1h 05m",
-      thumbnailUrl:
-        "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80",
+      slug,
+      title: sermonTitle,
+      date: new Date().toISOString().slice(0, 10),
+      topic: sermonTopic,
+      scriptureReferences: [],
+      description: sermonDescription,
+      youtubeId: sermonYoutubeId,
+      duration: "",
+      thumbnailUrl: `https://img.youtube.com/vi/${encodeURIComponent(sermonYoutubeId)}/hqdefault.jpg`,
     };
 
     try {
-      const res = await fetch("/api/sermons", {
+      const response = await fetch("/api/sermons", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newSermon),
+        body: JSON.stringify(sermon),
       });
-      if (res.ok) {
-        setSermons([newSermon, ...sermons]);
-        setSermonMsg("Sermon published successfully!");
-        setNewSermonTitle("");
-        setNewSermonYoutubeId("");
-        setNewSermonDesc("");
+      if (!response.ok) {
+        throw new Error("The sermon could not be published.");
       }
-    } catch {
-      setSermonMsg("Failed to save sermon");
+      setSermons((current) => [sermon, ...current]);
+      setSermonMessage("Sermon published.");
+      setSermonTitle("");
+      setSermonYoutubeId("");
+      setSermonDescription("");
+    } catch (saveError) {
+      setSermonMessage(
+        saveError instanceof Error
+          ? saveError.message
+          : "The sermon could not be published.",
+      );
     } finally {
       setSermonSaving(false);
     }
-  };
+  }
 
-  const exportSubscribersCsv = () => {
-    const headers =
-      "ID,Name,Email,Daily Devotional,Ministry Newsletter,Subscribed At,Source\n";
-    const rows = subscribers
-      .map(
-        (s) =>
-          `"${s.id}","${s.name || ""}","${s.email}",${s.preferences.dailyDevotional},${s.preferences.ministryNewsletter},"${s.subscribedAt}","${s.source}"`,
-      )
-      .join("\n");
-    const blob = new Blob([headers + rows], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `tolucci-subscribers-${new Date().toISOString().split("T")[0]}.csv`;
-    a.click();
-  };
+  function exportSubscribersCsv() {
+    const escapeCsv = (value: string) => `"${value.replaceAll('"', '""')}"`;
+    const headers = [
+      "ID",
+      "Name",
+      "Email",
+      "Daily Devotional",
+      "Ministry Newsletter",
+      "Subscribed At",
+      "Source",
+    ];
+    const rows = subscribers.map((subscriber) =>
+      [
+        subscriber.id,
+        subscriber.name ?? "",
+        subscriber.email,
+        String(subscriber.preferences.dailyDevotional),
+        String(subscriber.preferences.ministryNewsletter),
+        subscriber.subscribedAt,
+        subscriber.source,
+      ]
+        .map(escapeCsv)
+        .join(","),
+    );
+    const url = URL.createObjectURL(
+      new Blob([[headers.map(escapeCsv).join(","), ...rows].join("\n")], {
+        type: "text/csv;charset=utf-8",
+      }),
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `tolucci-subscribers-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
 
-  const handleLogout = () => {
+  function handleLogout() {
     sessionStorage.removeItem("tolucci_admin_authenticated");
     router.push("/admin/login");
+  }
+
+  const pageTitles: Record<AdminTab, string> = {
+    overview: "Overview",
+    enquiries: "Enquiries",
+    subscribers: "Subscribers",
+    devotionals: "Devotionals",
+    sermons: "Sermons",
   };
 
   return (
-    <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 border-b border-[#232332] gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#c5a880]/15 border border-[#c5a880]/30 flex items-center justify-center text-[#c5a880]">
-            <Shield className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="serif-heading text-2xl sm:text-3xl text-[#faf8f5]">
-              Ministry Administration & CMS
-            </h1>
-            <p className="text-xs text-[#9c978e]">
-              Platform Publishing Engine · Evangelist Tolucci Official
-            </p>
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#100f0e] text-[#f7f4ee]">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/[0.08] bg-[#151311] px-5 py-6 md:flex">
+        <a href="/admin" className="flex items-center gap-3 px-2">
+          {/* <span className="grid size-10 place-items-center rounded-xl bg-[#c8a97e]/15 text-[#c8a97e]">
+            <ShieldCheck className="size-5" />
+          </span> */}
+          <span>
+            <span className="block text-sm font-semibold">
+              Evangelist Tolucci's Ministry
+            </span>
+            <span className="mt-0.5 block text-xs text-[#8c857c]">
+              Admin workspace
+            </span>
+          </span>
+        </a>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={fetchData}
-            className="p-2 text-[#9c978e] hover:text-[#faf8f5] rounded-lg border border-[#2b2b3d] hover:border-[#c5a880] transition-colors"
-            title="Refresh Data"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
-          <button
-            onClick={handleLogout}
-            className="px-3.5 py-1.5 rounded-lg bg-[#181824] border border-[#2b2b3d] text-xs text-[#faf8f5] hover:text-red-400 hover:border-red-800 transition-colors flex items-center gap-1.5"
-          >
-            <LogOut className="w-3.5 h-3.5" /> Sign Out
-          </button>
-        </div>
-      </div>
-
-      {/* Navigation Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-[#1c1c28]">
-        {[
-          {
-            id: "overview",
-            label: "Overview & Metrics",
-            icon: LayoutDashboard,
-          },
-          {
-            id: "devotionals",
-            label: `Devotionals (${devotionals.length})`,
-            icon: BookOpen,
-          },
-          { id: "sermons", label: `Sermons (${sermons.length})`, icon: Radio },
-          {
-            id: "subscribers",
-            label: `Subscribers (${subscribers.length})`,
-            icon: Users,
-          },
-          {
-            id: "enquiries",
-            label: `Invitations & Enquiries (${enquiries.length})`,
-            icon: MessageSquare,
-          },
-          { id: "settings", label: "SEO & Announcements", icon: Settings },
-        ].map((tab) => {
-          const Icon = tab.icon;
-          return (
+        <p className="mb-3 mt-10 px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#716b63]">
+          Workspace
+        </p>
+        <nav className="space-y-1">
+          {navigation.map(({ id, label, icon: Icon }) => (
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 whitespace-nowrap transition-colors ${
-                activeTab === tab.id
-                  ? "bg-[#c5a880] text-[#0a0a0d] shadow-md shadow-[#c5a880]/15"
-                  : "bg-[#12121a] text-[#9c978e] hover:text-[#faf8f5] border border-[#232332]"
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm transition ${
+                activeTab === id
+                  ? "bg-[#c8a97e]/12 font-medium text-[#dec49d]"
+                  : "text-[#aaa39a] hover:bg-white/[0.04] hover:text-[#f7f4ee]"
               }`}
             >
-              <Icon className="w-3.5 h-3.5" /> {tab.label}
+              <Icon className="size-4" />
+              <span className="flex-1">{label}</span>
+              {id === "enquiries" && newEnquiryCount > 0 && (
+                <span className="rounded-full bg-[#c8a97e] px-2 py-0.5 text-[10px] font-semibold text-[#100f0e]">
+                  {newEnquiryCount}
+                </span>
+              )}
             </button>
-          );
-        })}
-      </div>
+          ))}
+        </nav>
 
-      {/* TAB: OVERVIEW */}
-      {activeTab === "overview" && (
-        <div className="space-y-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-6 rounded-2xl bg-[#111119] border border-[#232332] space-y-1">
-              <span className="text-xs uppercase tracking-wider text-[#9c978e]">
-                Total Subscribers
-              </span>
-              <div className="serif-heading text-3xl text-[#c5a880] font-bold">
-                {subscribers.length}
-              </div>
-              <p className="text-[11px] text-[#6b6760]">
-                Daily Devotional & Newsletter
-              </p>
-            </div>
-            <div className="p-6 rounded-2xl bg-[#111119] border border-[#232332] space-y-1">
-              <span className="text-xs uppercase tracking-wider text-[#9c978e]">
-                Ministry Enquiries
-              </span>
-              <div className="serif-heading text-3xl text-[#c5a880] font-bold">
-                {enquiries.length}
-              </div>
-              <p className="text-[11px] text-[#6b6760]">
-                {enquiries.filter((e) => e.status === "new").length} New /
-                Unreviewed
-              </p>
-            </div>
-            <div className="p-6 rounded-2xl bg-[#111119] border border-[#232332] space-y-1">
-              <span className="text-xs uppercase tracking-wider text-[#9c978e]">
-                Published Sermons
-              </span>
-              <div className="serif-heading text-3xl text-[#faf8f5] font-bold">
-                {sermons.length}
-              </div>
-              <p className="text-[11px] text-[#6b6760]">
-                Video & Audio Teachings
-              </p>
-            </div>
-            <div className="p-6 rounded-2xl bg-[#111119] border border-[#232332] space-y-1">
-              <span className="text-xs uppercase tracking-wider text-[#9c978e]">
-                Devotionals
-              </span>
-              <div className="serif-heading text-3xl text-[#faf8f5] font-bold">
-                {devotionals.length}
-              </div>
-              <p className="text-[11px] text-[#6b6760]">Daily Meditations</p>
-            </div>
-          </div>
+        <a
+          href="https://da42.host-ww.net/roundcube/?_task=mail&_mbox=INBOX"
+          target="_blank"
+          rel="noreferrer"
+          className="mt-6 flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-[#aaa39a] transition hover:bg-white/[0.04] hover:text-[#f7f4ee]"
+        >
+          <Mail className="size-4" />
+          <span className="flex-1">Open mail</span>
+          <ArrowUpRight className="size-3.5" />
+        </a>
 
-          {/* Quick Actions Panel */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-6 rounded-2xl bg-[#13131d] border border-[#c5a880]/30 space-y-4">
-              <h3 className="serif-heading text-xl text-[#faf8f5] flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#c5a880]" /> Quick Publishing
-                Shortcuts
-              </h3>
-              <p className="text-xs text-[#dcd6cc] leading-relaxed">
-                Publish a fresh morning devotional or add the latest sermon
-                video straight to the official platform without touching any
-                code.
-              </p>
-              <div className="flex gap-3 pt-2">
-                <button
-                  onClick={() => setActiveTab("devotionals")}
-                  className="px-4 py-2 rounded-lg bg-[#c5a880] text-[#0a0a0d] text-xs font-semibold hover:bg-[#e0cca9]"
-                >
-                  Write Devotional
-                </button>
-                <button
-                  onClick={() => setActiveTab("sermons")}
-                  className="px-4 py-2 rounded-lg bg-[#181824] border border-[#c5a880]/30 text-xs text-[#faf8f5] hover:border-[#c5a880]"
-                >
-                  Add Sermon
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-[#13131d] border border-[#232332] space-y-4">
-              <h3 className="serif-heading text-xl text-[#faf8f5] flex items-center gap-2">
-                <Users className="w-4 h-4 text-[#c5a880]" /> Subscriber Audience
-                Health
-              </h3>
-              <p className="text-xs text-[#dcd6cc] leading-relaxed">
-                Audience is growing across the first-visit dialog, devotionals
-                page, and footer form. Download the CSV list anytime to sync
-                with Mailchimp, ConvertKit, or SendGrid.
-              </p>
-              <div className="pt-2">
-                <button
-                  onClick={exportSubscribersCsv}
-                  className="px-4 py-2 rounded-lg bg-[#181824] border border-[#2b2b3d] text-xs text-[#faf8f5] hover:border-[#c5a880] flex items-center gap-2"
-                >
-                  <Download className="w-3.5 h-3.5 text-[#c5a880]" /> Export
-                  Subscribers to CSV
-                </button>
-              </div>
-            </div>
-          </div>
+        <div className="mt-auto rounded-2xl border border-white/[0.08] bg-white/[0.025] p-4">
+          <p className="text-xs font-medium text-[#f7f4ee]">
+            Ministry platform
+          </p>
+          <p className="mt-1 text-xs leading-5 text-[#8c857c]">
+            Manage messages, audience and published content in one place.
+          </p>
+          <a
+            href="/"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-3 inline-flex items-center gap-1.5 text-xs text-[#c8a97e] hover:text-[#dec49d]"
+          >
+            View website <ArrowUpRight className="size-3.5" />
+          </a>
         </div>
-      )}
+      </aside>
 
-      {/* TAB: DEVOTIONALS */}
-      {activeTab === "devotionals" && (
-        <div className="space-y-8">
-          {/* Create Devotional Form */}
-          <div className="p-6 sm:p-8 rounded-2xl bg-[#111119] border border-[#c5a880]/30 space-y-5">
-            <h3 className="serif-heading text-2xl text-[#faf8f5]">
-              Publish New Daily Devotional
-            </h3>
-            {devMsg && (
-              <div className="p-3 bg-green-950/40 border border-green-800 rounded-lg text-xs text-green-300">
-                {devMsg}
-              </div>
-            )}
-            <form onSubmit={handleCreateDevotional} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-[#dcd6cc] mb-1">
-                    Devotional Title
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Consecrating the Midnight Watch"
-                    value={newDevTitle}
-                    onChange={(e) => setNewDevTitle(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-lg bg-[#161622] border border-[#2b2b3d] text-xs text-[#faf8f5] focus:outline-none focus:border-[#c5a880]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-[#dcd6cc] mb-1">
-                    Scripture Reference
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Psalm 119:62"
-                    value={newDevScripture}
-                    onChange={(e) => setNewDevScripture(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-lg bg-[#161622] border border-[#2b2b3d] text-xs text-[#faf8f5] focus:outline-none focus:border-[#c5a880]"
-                  />
-                </div>
-              </div>
-
+      <div className="md:pl-64">
+        <header className="sticky top-0 z-20 border-b border-white/[0.08] bg-[#100f0e]/95 px-4 py-4 backdrop-blur sm:px-7 lg:px-10">
+          <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="grid size-9 place-items-center rounded-xl bg-[#c8a97e]/15 text-[#c8a97e] md:hidden">
+                <ShieldCheck className="size-4" />
+              </span>
               <div>
-                <label className="block text-xs font-medium text-[#dcd6cc] mb-1">
-                  Scripture Verse Text
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. At midnight I will rise to give thanks unto thee because of thy righteous judgments."
-                  value={newDevScriptureText}
-                  onChange={(e) => setNewDevScriptureText(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-lg bg-[#161622] border border-[#2b2b3d] text-xs text-[#faf8f5] focus:outline-none focus:border-[#c5a880]"
-                />
+                <p className="text-xs text-[#8c857c]">Ministry workspace</p>
+                <h1 className="mt-0.5 text-lg font-semibold tracking-tight">
+                  {pageTitles[activeTab]}
+                </h1>
               </div>
-
-              <div>
-                <label className="block text-xs font-medium text-[#dcd6cc] mb-1">
-                  Main Meditation Content (Separate paragraphs with double
-                  enter)
-                </label>
-                <textarea
-                  required
-                  rows={4}
-                  placeholder="Enter the full spiritual reading..."
-                  value={newDevContent}
-                  onChange={(e) => setNewDevContent(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-lg bg-[#161622] border border-[#2b2b3d] text-xs text-[#faf8f5] focus:outline-none focus:border-[#c5a880]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-[#dcd6cc] mb-1">
-                  Closing Consecration Prayer
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Father, awaken my spirit in the night seasons..."
-                  value={newDevPrayer}
-                  onChange={(e) => setNewDevPrayer(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-lg bg-[#161622] border border-[#2b2b3d] text-xs text-[#faf8f5] focus:outline-none focus:border-[#c5a880]"
-                />
-              </div>
-
+            </div>
+            <div className="flex items-center gap-2">
               <button
-                type="submit"
-                disabled={devSaving}
-                className="px-6 py-2.5 rounded-lg bg-[#c5a880] text-[#0a0a0d] text-xs font-semibold hover:bg-[#e0cca9] transition-all disabled:opacity-50"
+                onClick={() => void fetchData()}
+                disabled={loading}
+                aria-label="Refresh dashboard data"
+                className="grid size-10 place-items-center rounded-xl border border-white/[0.1] text-[#aaa39a] transition hover:border-[#c8a97e]/50 hover:text-[#f7f4ee] disabled:opacity-50"
               >
-                {devSaving ? "Publishing..." : "Publish to Devotional Archive"}
+                <RefreshCw
+                  className={`size-4 ${loading ? "animate-spin" : ""}`}
+                />
               </button>
-            </form>
-          </div>
-
-          {/* Published Devotionals List */}
-          <div className="space-y-3">
-            <h4 className="text-xs uppercase tracking-wider text-[#9c978e] font-semibold">
-              Currently Live Devotionals ({devotionals.length})
-            </h4>
-            <div className="space-y-2">
-              {devotionals.map((d) => (
-                <div
-                  key={d.id}
-                  className="p-4 rounded-xl bg-[#111119] border border-[#232332] flex items-center justify-between gap-4"
-                >
-                  <div>
-                    <span className="text-[10px] text-[#c5a880]">
-                      {d.date} · {d.scriptureReference}
-                    </span>
-                    <h4 className="text-sm font-semibold text-[#faf8f5]">
-                      {d.title}
-                    </h4>
-                  </div>
-                  <a
-                    href={`/devotional/${d.slug}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-[#c5a880] hover:underline inline-flex items-center gap-1"
-                  >
-                    View Live <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-              ))}
+              <button
+                onClick={handleLogout}
+                className="flex h-10 items-center gap-2 rounded-xl border border-white/[0.1] px-3 text-sm text-[#aaa39a] transition hover:border-red-400/40 hover:text-red-300"
+              >
+                <LogOut className="size-4" />
+                <span className="hidden sm:inline">Sign out</span>
+              </button>
             </div>
           </div>
-        </div>
-      )}
+        </header>
 
-      {/* TAB: SERMONS */}
-      {activeTab === "sermons" && (
-        <div className="space-y-8">
-          {/* Create Sermon Form */}
-          <div className="p-6 sm:p-8 rounded-2xl bg-[#111119] border border-[#c5a880]/30 space-y-5">
-            <h3 className="serif-heading text-2xl text-[#faf8f5]">
-              Add New Sermon Video / Teaching
-            </h3>
-            {sermonMsg && (
-              <div className="p-3 bg-green-950/40 border border-green-800 rounded-lg text-xs text-green-300">
-                {sermonMsg}
-              </div>
-            )}
-            <form onSubmit={handleCreateSermon} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-medium text-[#dcd6cc] mb-1">
-                    Sermon Title
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Awakening the Sound of Zion"
-                    value={newSermonTitle}
-                    onChange={(e) => setNewSermonTitle(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-lg bg-[#161622] border border-[#2b2b3d] text-xs text-[#faf8f5] focus:outline-none focus:border-[#c5a880]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-[#dcd6cc] mb-1">
-                    Topic / Category
-                  </label>
-                  <select
-                    value={newSermonTopic}
-                    onChange={(e) => setNewSermonTopic(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-lg bg-[#161622] border border-[#2b2b3d] text-xs text-[#faf8f5] focus:outline-none focus:border-[#c5a880]"
-                  >
-                    <option value="Revival">Revival</option>
-                    <option value="Prayer & Warfare">Prayer & Warfare</option>
-                    <option value="Holy Spirit">Holy Spirit</option>
-                    <option value="Discipleship">Discipleship</option>
-                    <option value="Kingdom Identity">Kingdom Identity</option>
-                  </select>
-                </div>
-              </div>
+        <nav className="flex gap-2 overflow-x-auto border-b border-white/[0.06] px-4 py-3 md:hidden">
+          {navigation.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs ${
+                activeTab === id
+                  ? "bg-[#c8a97e] font-semibold text-[#100f0e]"
+                  : "bg-white/[0.04] text-[#aaa39a]"
+              }`}
+            >
+              <Icon className="size-3.5" />
+              {label}
+            </button>
+          ))}
+        </nav>
 
-              <div>
-                <label className="block text-xs font-medium text-[#dcd6cc] mb-1">
-                  YouTube Video ID (e.g. b9L3V3lQ38A)
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. b9L3V3lQ38A"
-                  value={newSermonYoutubeId}
-                  onChange={(e) => setNewSermonYoutubeId(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-lg bg-[#161622] border border-[#2b2b3d] text-xs text-[#faf8f5] focus:outline-none focus:border-[#c5a880]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-[#dcd6cc] mb-1">
-                  Sermon Description & Notes
-                </label>
-                <textarea
-                  rows={3}
-                  placeholder="Overview of message..."
-                  value={newSermonDesc}
-                  onChange={(e) => setNewSermonDesc(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-lg bg-[#161622] border border-[#2b2b3d] text-xs text-[#faf8f5] focus:outline-none focus:border-[#c5a880]"
-                />
-              </div>
-
+        <main className="mx-auto max-w-[1440px] space-y-7 px-4 py-7 sm:px-7 sm:py-9 lg:px-10">
+          {error && (
+            <div
+              role="alert"
+              className="flex items-center justify-between gap-4 rounded-xl border border-red-400/20 bg-red-400/[0.06] px-4 py-3 text-sm text-red-200"
+            >
+              <span>{error}</span>
               <button
-                type="submit"
-                disabled={sermonSaving}
-                className="px-6 py-2.5 rounded-lg bg-[#c5a880] text-[#0a0a0d] text-xs font-semibold hover:bg-[#e0cca9] transition-all disabled:opacity-50"
+                onClick={() => setError("")}
+                aria-label="Dismiss error"
+                className="text-red-200/70 hover:text-red-100"
               >
-                {sermonSaving ? "Saving..." : "Publish Sermon"}
+                ×
               </button>
-            </form>
-          </div>
+            </div>
+          )}
 
-          {/* List of Sermons */}
-          <div className="space-y-2">
-            {sermons.map((s) => (
-              <div
-                key={s.id}
-                className="p-4 rounded-xl bg-[#111119] border border-[#232332] flex items-center justify-between gap-4"
-              >
+          {activeTab === "overview" && (
+            <>
+              <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                 <div>
-                  <span className="text-[10px] text-[#c5a880] uppercase">
-                    {s.topic} · {s.duration}
-                  </span>
-                  <h4 className="text-sm font-semibold text-[#faf8f5]">
-                    {s.title}
-                  </h4>
+                  <p className="text-sm text-[#c8a97e]">Good to see you</p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+                    Ministry at a glance
+                  </h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-[#8c857c]">
+                    Review incoming messages, keep up with your audience and
+                    manage published resources.
+                  </p>
                 </div>
                 <a
-                  href={`/sermons/${s.slug}`}
+                  href="/contact"
                   target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-[#c5a880] hover:underline inline-flex items-center gap-1"
+                  rel="noreferrer"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/[0.1] px-4 text-sm text-[#d8d1c7] transition hover:border-[#c8a97e]/50"
                 >
-                  View <ExternalLink className="w-3 h-3" />
+                  Open public site <ArrowUpRight className="size-4" />
                 </a>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+              </section>
 
-      {/* TAB: SUBSCRIBERS */}
-      {activeTab === "subscribers" && (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h3 className="serif-heading text-2xl text-[#faf8f5]">
-                Ministry Subscribers
-              </h3>
-              <p className="text-xs text-[#9c978e]">
-                Direct audience list acquired via website subscription modal and
-                footer forms.
-              </p>
-            </div>
-            <button
-              onClick={exportSubscribersCsv}
-              className="px-4 py-2 rounded-xl bg-[#c5a880] text-[#0a0a0d] text-xs font-semibold flex items-center gap-2 hover:bg-[#e0cca9]"
-            >
-              <Download className="w-3.5 h-3.5" /> Export CSV (
-              {subscribers.length})
-            </button>
-          </div>
+              <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <StatCard
+                  label="Subscribers"
+                  value={subscribers.length}
+                  note="People following ministry updates"
+                  icon={Users}
+                  accent
+                />
+                <StatCard
+                  label="New enquiries"
+                  value={newEnquiryCount}
+                  note={`${enquiries.length} total messages received`}
+                  icon={MessageSquareText}
+                />
+                <StatCard
+                  label="Devotionals"
+                  value={devotionals.length}
+                  note="Available in the devotional archive"
+                  icon={BookOpen}
+                />
+                <StatCard
+                  label="Sermons"
+                  value={sermons.length}
+                  note="Available in the sermon library"
+                  icon={Video}
+                />
+              </section>
 
-          <div className="rounded-2xl border border-[#232332] overflow-hidden bg-[#111119]">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-[#161624] text-[#9c978e] border-b border-[#232332]">
-                <tr>
-                  <th className="p-3.5">Name</th>
-                  <th className="p-3.5">Email</th>
-                  <th className="p-3.5">Daily Devotional</th>
-                  <th className="p-3.5">Newsletter</th>
-                  <th className="p-3.5">Source</th>
-                  <th className="p-3.5">Subscribed Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#1c1c28] text-[#dcd6cc]">
-                {subscribers.map((sub) => (
-                  <tr key={sub.id} className="hover:bg-white/[0.02]">
-                    <td className="p-3.5 font-medium text-[#faf8f5]">
-                      {sub.name || "Anonymous"}
-                    </td>
-                    <td className="p-3.5 font-mono text-[#c5a880]">
-                      {sub.email}
-                    </td>
-                    <td className="p-3.5">
-                      {sub.preferences.dailyDevotional ? (
-                        <span className="px-2 py-0.5 rounded bg-green-950/60 text-green-300 border border-green-800 text-[10px]">
-                          Subscribed
-                        </span>
-                      ) : (
-                        <span className="text-[10px] text-[#6b6760]">No</span>
-                      )}
-                    </td>
-                    <td className="p-3.5">
-                      {sub.preferences.ministryNewsletter ? (
-                        <span className="px-2 py-0.5 rounded bg-blue-950/60 text-blue-300 border border-blue-800 text-[10px]">
-                          Subscribed
-                        </span>
-                      ) : (
-                        <span className="text-[10px] text-[#6b6760]">No</span>
-                      )}
-                    </td>
-                    <td className="p-3.5 text-[#9c978e] capitalize">
-                      {sub.source.replace("_", " ")}
-                    </td>
-                    <td className="p-3.5 text-[#9c978e]">
-                      {new Date(sub.subscribedAt).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* TAB: ENQUIRIES */}
-      {activeTab === "enquiries" && (
-        <div className="space-y-6">
-          <div>
-            <h3 className="serif-heading text-2xl text-[#faf8f5]">
-              Ministry Enquiries & Itinerary Requests
-            </h3>
-            <p className="text-xs text-[#9c978e]">
-              Manage invitations to preach, conference keynotes, media
-              interviews, and correspondence.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            {enquiries.map((enq) => (
-              <div
-                key={enq.id}
-                className="p-6 rounded-2xl bg-[#111119] border border-[#232332] space-y-4 shadow-lg"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1c1c28] pb-3">
-                  <div>
-                    <span className="text-xs font-semibold text-[#c5a880] uppercase tracking-wider block">
-                      {enq.category.replace("_", " ")}
-                    </span>
-                    <h4 className="text-base font-semibold text-[#faf8f5]">
-                      {enq.name}{" "}
-                      {enq.organization ? `· ${enq.organization}` : ""}
-                    </h4>
+              <section className="grid gap-5 xl:grid-cols-[1.4fr_1fr]">
+                <article className={`${panelClass} overflow-hidden`}>
+                  <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4 sm:px-6">
+                    <div>
+                      <h3 className="text-sm font-semibold">
+                        Recent enquiries
+                      </h3>
+                      <p className="mt-1 text-xs text-[#8c857c]">
+                        The latest messages from the contact form
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab("enquiries")}
+                      className="text-xs text-[#c8a97e] hover:text-[#dec49d]"
+                    >
+                      View all
+                    </button>
                   </div>
+                  {loading ? (
+                    <p className="px-6 py-10 text-center text-sm text-[#8c857c]">
+                      Loading enquiries…
+                    </p>
+                  ) : recentEnquiries.length ? (
+                    <div className="divide-y divide-white/[0.06]">
+                      {recentEnquiries.map((enquiry) => (
+                        <div
+                          key={enquiry.id}
+                          className="flex flex-col justify-between gap-3 px-5 py-4 sm:flex-row sm:items-center sm:px-6"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium">
+                              {enquiry.name}
+                              {enquiry.organization
+                                ? ` · ${enquiry.organization}`
+                                : ""}
+                            </p>
+                            <p className="mt-1 truncate text-xs text-[#8c857c]">
+                              {enquiry.message}
+                            </p>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-3">
+                            <span
+                              className={`rounded-full px-2.5 py-1 text-[10px] capitalize ${
+                                enquiry.status === "new"
+                                  ? "bg-[#c8a97e]/15 text-[#dec49d]"
+                                  : "bg-white/[0.06] text-[#aaa39a]"
+                              }`}
+                            >
+                              {enquiry.status}
+                            </span>
+                            <span className="text-xs text-[#8c857c]">
+                              {formatDate(enquiry.submittedAt)}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState
+                      title="No enquiries yet"
+                      detail="New messages submitted through the website will appear here."
+                    />
+                  )}
+                </article>
 
-                  {/* Status Toggle Buttons */}
-                  <div className="flex items-center gap-1.5">
-                    {(
-                      ["new", "reviewed", "responded", "archived"] as const
-                    ).map((status) => (
-                      <button
-                        key={status}
-                        onClick={() => handleStatusChange(enq.id, status)}
-                        className={`px-2.5 py-1 rounded text-[11px] font-medium capitalize transition-colors ${
-                          enq.status === status
-                            ? status === "new"
-                              ? "bg-amber-500/20 text-amber-300 border border-amber-600"
-                              : status === "reviewed"
-                                ? "bg-blue-500/20 text-blue-300 border border-blue-600"
-                                : status === "responded"
-                                  ? "bg-green-500/20 text-green-300 border border-green-600"
-                                  : "bg-zinc-700/50 text-zinc-300"
-                            : "bg-[#181824] text-[#9c978e] hover:text-[#faf8f5]"
-                        }`}
+                <article className={`${panelClass} overflow-hidden`}>
+                  <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4 sm:px-6">
+                    <div>
+                      <h3 className="text-sm font-semibold">
+                        Recent subscribers
+                      </h3>
+                      <p className="mt-1 text-xs text-[#8c857c]">
+                        Latest audience sign-ups
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab("subscribers")}
+                      className="text-xs text-[#c8a97e] hover:text-[#dec49d]"
+                    >
+                      View all
+                    </button>
+                  </div>
+                  {loading ? (
+                    <p className="px-6 py-10 text-center text-sm text-[#8c857c]">
+                      Loading subscribers…
+                    </p>
+                  ) : recentSubscribers.length ? (
+                    <div className="divide-y divide-white/[0.06]">
+                      {recentSubscribers.map((subscriber) => (
+                        <div
+                          key={subscriber.id}
+                          className="flex items-center gap-3 px-5 py-4 sm:px-6"
+                        >
+                          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[#c8a97e]/10 text-xs font-semibold text-[#c8a97e]">
+                            {(subscriber.name || subscriber.email)
+                              .slice(0, 1)
+                              .toUpperCase()}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium">
+                              {subscriber.name || "Unnamed subscriber"}
+                            </p>
+                            <p className="truncate text-xs text-[#8c857c]">
+                              {subscriber.email}
+                            </p>
+                          </div>
+                          <span className="shrink-0 text-xs text-[#8c857c]">
+                            {formatDate(subscriber.subscribedAt)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState
+                      title="No subscribers yet"
+                      detail="When someone signs up for ministry updates, they will be listed here."
+                    />
+                  )}
+                </article>
+              </section>
+
+              <section>
+                <div className="mb-3">
+                  <h3 className="text-sm font-semibold">Quick actions</h3>
+                  <p className="mt-1 text-xs text-[#8c857c]">
+                    Create and manage resources for the ministry website
+                  </p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {(
+                    [
+                      {
+                        id: "devotionals",
+                        title: "Write a devotional",
+                        detail: "Publish a new reading to the archive",
+                        icon: BookOpen,
+                      },
+                      {
+                        id: "sermons",
+                        title: "Add a sermon",
+                        detail: "Share a new video teaching",
+                        icon: Video,
+                      },
+                    ] as const
+                  ).map(({ id, title, detail, icon: Icon }) => (
+                    <button
+                      key={id}
+                      onClick={() => setActiveTab(id)}
+                      className={`${panelClass} flex items-center gap-4 p-5 text-left transition hover:border-[#c8a97e]/40`}
+                    >
+                      <span className="grid size-10 place-items-center rounded-xl bg-[#c8a97e]/12 text-[#c8a97e]">
+                        <Icon className="size-5" />
+                      </span>
+                      <span className="flex-1">
+                        <span className="block text-sm font-medium">
+                          {title}
+                        </span>
+                        <span className="mt-1 block text-xs text-[#8c857c]">
+                          {detail}
+                        </span>
+                      </span>
+                      <Plus className="size-4 text-[#8c857c]" />
+                    </button>
+                  ))}
+                </div>
+              </section>
+            </>
+          )}
+
+          {activeTab === "enquiries" && (
+            <section className="space-y-4">
+              <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+                <div>
+                  <h2 className="text-xl font-semibold">Contact inbox</h2>
+                  <p className="mt-1 text-sm text-[#8c857c]">
+                    Invitations, event requests and messages submitted on the
+                    site.
+                  </p>
+                </div>
+                <p className="text-xs text-[#8c857c]">
+                  {enquiries.length}{" "}
+                  {enquiries.length === 1 ? "message" : "messages"}
+                </p>
+              </div>
+              {loading ? (
+                <div
+                  className={`${panelClass} py-12 text-center text-sm text-[#8c857c]`}
+                >
+                  Loading enquiries…
+                </div>
+              ) : enquiries.length ? (
+                <div className="space-y-3">
+                  {enquiries.map((enquiry) => (
+                    <article
+                      key={enquiry.id}
+                      className={`${panelClass} p-5 sm:p-6`}
+                    >
+                      <div className="flex flex-col justify-between gap-4 border-b border-white/[0.07] pb-4 sm:flex-row sm:items-start">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="text-base font-semibold">
+                              {enquiry.name}
+                            </h3>
+                            <span className="rounded-full bg-[#c8a97e]/10 px-2.5 py-1 text-[10px] capitalize text-[#dec49d]">
+                              {enquiry.category.replaceAll("_", " ")}
+                            </span>
+                          </div>
+                          {enquiry.organization && (
+                            <p className="mt-1 text-sm text-[#aaa39a]">
+                              {enquiry.organization}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label className="relative">
+                            <span className="sr-only">Enquiry status</span>
+                            <select
+                              value={enquiry.status}
+                              onChange={(event) =>
+                                void handleStatusChange(
+                                  enquiry.id,
+                                  event.target
+                                    .value as ContactEnquiry["status"],
+                                )
+                              }
+                              className="appearance-none rounded-lg border border-white/[0.1] bg-[#100f0e] py-2 pl-3 pr-9 text-xs capitalize text-[#d8d1c7] outline-none focus:border-[#c8a97e]"
+                            >
+                              {(
+                                [
+                                  "new",
+                                  "reviewed",
+                                  "responded",
+                                  "archived",
+                                ] as const
+                              ).map((status) => (
+                                <option key={status} value={status}>
+                                  {status}
+                                </option>
+                              ))}
+                            </select>
+                            <ChevronDown className="pointer-events-none absolute right-3 top-2.5 size-3.5 text-[#8c857c]" />
+                          </label>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center justify-between gap-3 py-4">
+                        <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-[#aaa39a]">
+                          <span className="inline-flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void handleStatusChange(enquiry.id, "responded")
+                              }
+                              aria-label={`Mark ${enquiry.name}'s enquiry as responded`}
+                              title="Mark as responded"
+                              className="grid size-7 place-items-center rounded-lg border border-emerald-400/25 bg-emerald-400/5 text-emerald-300 transition hover:border-emerald-400/50 hover:bg-emerald-400/10"
+                            >
+                              <Check className="size-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void handleDeleteEnquiry(enquiry.id)
+                              }
+                              aria-label={`Delete ${enquiry.name}'s enquiry`}
+                              title="Delete enquiry"
+                              className="grid size-7 place-items-center rounded-lg border border-red-400/25 bg-red-500/5 text-red-200 transition hover:border-red-400/50 hover:bg-red-500/10"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
+                            <Mail className="size-3.5 text-[#c8a97e]" />
+                            {enquiry.email}
+                          </span>
+                          {enquiry.eventDate && (
+                            <span className="inline-flex items-center gap-2">
+                              <CalendarDays className="size-3.5 text-[#c8a97e]" />
+                              {enquiry.eventDate}
+                            </span>
+                          )}
+                          {enquiry.location && (
+                            <span className="inline-flex items-center gap-2">
+                              <MapPin className="size-3.5 text-[#c8a97e]" />
+                              {enquiry.location}
+                            </span>
+                          )}
+                          <span className="inline-flex items-center gap-2">
+                            <Clock3 className="size-3.5 text-[#c8a97e]" />
+                            {formatDate(enquiry.submittedAt)}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="rounded-xl bg-white/[0.03] p-4 text-sm leading-6 text-[#d8d1c7]">
+                        {enquiry.message}
+                      </p>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className={`${panelClass}`}>
+                  <EmptyState
+                    title="Your inbox is clear"
+                    detail="New enquiries from the website will appear here."
+                  />
+                </div>
+              )}
+            </section>
+          )}
+
+          {activeTab === "subscribers" && (
+            <section className="space-y-4">
+              <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+                <div>
+                  <h2 className="text-xl font-semibold">Audience</h2>
+                  <p className="mt-1 text-sm text-[#8c857c]">
+                    Manage people subscribed to ministry updates.
+                  </p>
+                </div>
+                <button
+                  onClick={exportSubscribersCsv}
+                  disabled={!subscribers.length}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#c8a97e] px-4 text-sm font-medium text-[#100f0e] transition hover:bg-[#dec49d] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <ArrowDownToLine className="size-4" />
+                  Export CSV
+                </button>
+              </div>
+              <div className={`${panelClass} overflow-hidden`}>
+                {loading ? (
+                  <p className="py-12 text-center text-sm text-[#8c857c]">
+                    Loading subscribers…
+                  </p>
+                ) : subscribers.length ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[760px] text-left text-sm">
+                      <thead className="border-b border-white/[0.08] bg-white/[0.025] text-xs text-[#8c857c]">
+                        <tr>
+                          <th className="px-5 py-4 font-medium">Subscriber</th>
+                          <th className="px-5 py-4 font-medium">Preferences</th>
+                          <th className="px-5 py-4 font-medium">Source</th>
+                          <th className="px-5 py-4 font-medium">Joined</th>
+                          <th className="px-5 py-4 text-right font-medium">
+                            Action
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/[0.06]">
+                        {subscribers.map((subscriber) => (
+                          <tr key={subscriber.id}>
+                            <td className="px-5 py-4">
+                              <p className="font-medium">
+                                {subscriber.name || "Unnamed subscriber"}
+                              </p>
+                              <a
+                                href={`mailto:${subscriber.email}`}
+                                className="mt-1 inline-block text-xs text-[#aaa39a] hover:text-[#dec49d]"
+                              >
+                                {subscriber.email}
+                              </a>
+                            </td>
+                            <td className="px-5 py-4 text-xs text-[#aaa39a]">
+                              {[
+                                subscriber.preferences.dailyDevotional &&
+                                  "Daily devotional",
+                                subscriber.preferences.ministryNewsletter &&
+                                  "Newsletter",
+                              ]
+                                .filter(Boolean)
+                                .join(" · ") || "No preferences selected"}
+                            </td>
+                            <td className="px-5 py-4 text-xs capitalize text-[#aaa39a]">
+                              {subscriber.source.replaceAll("_", " ")}
+                            </td>
+                            <td className="px-5 py-4 text-xs text-[#aaa39a]">
+                              {formatDate(subscriber.subscribedAt)}
+                            </td>
+                            <td className="px-5 py-4 text-right">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  void handleDeleteSubscriber(subscriber.id)
+                                }
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-red-400/25 bg-red-500/5 px-2.5 py-2 text-[10px] font-medium text-red-200 transition hover:border-red-400/40 hover:bg-red-500/10"
+                              >
+                                <Trash2 className="size-3.5" />
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <EmptyState
+                    title="No subscribers yet"
+                    detail="New sign-ups will appear here once visitors subscribe to ministry updates."
+                  />
+                )}
+              </div>
+            </section>
+          )}
+
+          {activeTab === "devotionals" && (
+            <section className="grid items-start gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+              <div className={`${panelClass} p-5 sm:p-6`}>
+                <h2 className="text-lg font-semibold">Publish a devotional</h2>
+                <p className="mt-1 text-sm text-[#8c857c]">
+                  Add a new reading to the public devotional archive.
+                </p>
+                {devMessage && (
+                  <p
+                    role="status"
+                    className="mt-4 rounded-lg border border-[#c8a97e]/20 bg-[#c8a97e]/[0.07] px-3 py-2 text-sm text-[#dec49d]"
+                  >
+                    {devMessage}
+                  </p>
+                )}
+                <form
+                  onSubmit={handleCreateDevotional}
+                  className="mt-5 space-y-4"
+                >
+                  <label className="block space-y-1.5 text-xs text-[#aaa39a]">
+                    Title
+                    <input
+                      required
+                      value={devTitle}
+                      onChange={(event) => setDevTitle(event.target.value)}
+                      className={inputClass}
+                      placeholder="A title for today’s reading"
+                    />
+                  </label>
+                  <label className="block space-y-1.5 text-xs text-[#aaa39a]">
+                    Scripture reference
+                    <input
+                      required
+                      value={devScripture}
+                      onChange={(event) => setDevScripture(event.target.value)}
+                      className={inputClass}
+                      placeholder="e.g. Psalm 27:1"
+                    />
+                  </label>
+                  <label className="block space-y-1.5 text-xs text-[#aaa39a]">
+                    Scripture text
+                    <textarea
+                      required
+                      rows={2}
+                      value={devScriptureText}
+                      onChange={(event) =>
+                        setDevScriptureText(event.target.value)
+                      }
+                      className={inputClass}
+                    />
+                  </label>
+                  <label className="block space-y-1.5 text-xs text-[#aaa39a]">
+                    Short summary
+                    <textarea
+                      rows={2}
+                      value={devExcerpt}
+                      onChange={(event) => setDevExcerpt(event.target.value)}
+                      className={inputClass}
+                    />
+                  </label>
+                  <label className="block space-y-1.5 text-xs text-[#aaa39a]">
+                    Reading
+                    <textarea
+                      required
+                      rows={6}
+                      value={devContent}
+                      onChange={(event) => setDevContent(event.target.value)}
+                      className={inputClass}
+                      placeholder="Separate paragraphs with a blank line."
+                    />
+                  </label>
+                  <label className="block space-y-1.5 text-xs text-[#aaa39a]">
+                    Closing prayer
+                    <textarea
+                      required
+                      rows={3}
+                      value={devPrayer}
+                      onChange={(event) => setDevPrayer(event.target.value)}
+                      className={inputClass}
+                    />
+                  </label>
+                  <button
+                    disabled={devSaving}
+                    className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#c8a97e] px-4 text-sm font-semibold text-[#100f0e] transition hover:bg-[#dec49d] disabled:opacity-50"
+                  >
+                    <Plus className="size-4" />
+                    {devSaving ? "Publishing…" : "Publish devotional"}
+                  </button>
+                </form>
+              </div>
+              <div className={`${panelClass} overflow-hidden`}>
+                <div className="border-b border-white/[0.07] px-5 py-4">
+                  <h3 className="text-sm font-semibold">
+                    Published devotionals
+                  </h3>
+                  <p className="mt-1 text-xs text-[#8c857c]">
+                    {devotionals.length} in the archive
+                  </p>
+                </div>
+                {devotionals.length ? (
+                  <div className="divide-y divide-white/[0.06]">
+                    {devotionals.map((devotional) => (
+                      <div
+                        key={devotional.id}
+                        className="flex items-center justify-between gap-3 px-5 py-4"
                       >
-                        {status}
-                      </button>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium">
+                            {devotional.title}
+                          </p>
+                          <p className="mt-1 text-xs text-[#8c857c]">
+                            {formatDate(devotional.date)} ·{" "}
+                            {devotional.scriptureReference}
+                          </p>
+                        </div>
+                        <a
+                          href={`/devotional/${devotional.slug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label={`View ${devotional.title}`}
+                          className="text-[#c8a97e] hover:text-[#dec49d]"
+                        >
+                          <ArrowUpRight className="size-4" />
+                        </a>
+                      </div>
                     ))}
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-[#9c978e]">
-                  <div>
-                    Email: <span className="text-[#faf8f5]">{enq.email}</span>
-                  </div>
-                  {enq.phone && (
-                    <div>
-                      Phone: <span className="text-[#faf8f5]">{enq.phone}</span>
-                    </div>
-                  )}
-                  {enq.eventDate && (
-                    <div>
-                      Proposed Date:{" "}
-                      <span className="text-[#faf8f5]">{enq.eventDate}</span>
-                    </div>
-                  )}
-                  {enq.location && (
-                    <div>
-                      Location:{" "}
-                      <span className="text-[#faf8f5]">{enq.location}</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-4 rounded-xl bg-[#151522] text-xs sm:text-sm text-[#dcd6cc] leading-relaxed">
-                  {enq.message}
-                </div>
+                ) : (
+                  <EmptyState
+                    title="No devotionals published"
+                    detail="Your published readings will be listed here."
+                  />
+                )}
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+            </section>
+          )}
 
-      {/* TAB: SETTINGS & SEO */}
-      {activeTab === "settings" && (
-        <div className="p-6 sm:p-8 rounded-2xl bg-[#111119] border border-[#232332] space-y-6 max-w-2xl">
-          <h3 className="serif-heading text-2xl text-[#faf8f5]">
-            Platform Settings & SEO Defaults
-          </h3>
-          <div className="space-y-4 text-xs">
-            <div>
-              <label className="block font-medium text-[#dcd6cc] mb-1">
-                Official Website URL
-              </label>
-              <input
-                type="url"
-                defaultValue="https://evangelisttolucci.com"
-                className="w-full px-3.5 py-2 rounded-lg bg-[#161622] border border-[#2b2b3d] text-xs text-[#faf8f5]"
-              />
-            </div>
-            <div>
-              <label className="block font-medium text-[#dcd6cc] mb-1">
-                Official Platform Title
-              </label>
-              <input
-                type="text"
-                defaultValue="Evangelist Tolucci | Official Website & Ministry Platform"
-                className="w-full px-3.5 py-2 rounded-lg bg-[#161622] border border-[#2b2b3d] text-xs text-[#faf8f5]"
-              />
-            </div>
-            <div>
-              <label className="block font-medium text-[#dcd6cc] mb-1">
-                Meta Description for Search Engines (SEO)
-              </label>
-              <textarea
-                rows={3}
-                defaultValue="Official digital home and ministry platform for Evangelist Tolucci. Discover sermons, daily devotionals, music releases, books, and prophetic teachings for personal revival."
-                className="w-full px-3.5 py-2 rounded-lg bg-[#161622] border border-[#2b2b3d] text-xs text-[#faf8f5]"
-              />
-            </div>
-            <div>
-              <label className="block font-medium text-[#dcd6cc] mb-1">
-                Ministry Contact Email
-              </label>
-              <input
-                type="email"
-                defaultValue="info@evangelisttolucci.com"
-                className="w-full px-3.5 py-2 rounded-lg bg-[#161622] border border-[#2b2b3d] text-xs text-[#faf8f5]"
-              />
-            </div>
-            <div className="pt-2">
-              <button
-                onClick={() => alert("Settings updated in local environment.")}
-                className="px-6 py-2.5 rounded-lg bg-[#c5a880] text-[#0a0a0d] font-semibold text-xs hover:bg-[#e0cca9]"
-              >
-                Save Settings
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          {activeTab === "sermons" && (
+            <section className="grid items-start gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+              <div className={`${panelClass} p-5 sm:p-6`}>
+                <h2 className="text-lg font-semibold">Add a sermon</h2>
+                <p className="mt-1 text-sm text-[#8c857c]">
+                  Publish a video teaching to the sermon library.
+                </p>
+                {sermonMessage && (
+                  <p
+                    role="status"
+                    className="mt-4 rounded-lg border border-[#c8a97e]/20 bg-[#c8a97e]/[0.07] px-3 py-2 text-sm text-[#dec49d]"
+                  >
+                    {sermonMessage}
+                  </p>
+                )}
+                <form onSubmit={handleCreateSermon} className="mt-5 space-y-4">
+                  <label className="block space-y-1.5 text-xs text-[#aaa39a]">
+                    Sermon title
+                    <input
+                      required
+                      value={sermonTitle}
+                      onChange={(event) => setSermonTitle(event.target.value)}
+                      className={inputClass}
+                    />
+                  </label>
+                  <label className="block space-y-1.5 text-xs text-[#aaa39a]">
+                    Topic
+                    <select
+                      value={sermonTopic}
+                      onChange={(event) => setSermonTopic(event.target.value)}
+                      className={inputClass}
+                    >
+                      <option>Revival</option>
+                      <option>Prayer &amp; Warfare</option>
+                      <option>Holy Spirit</option>
+                      <option>Discipleship</option>
+                      <option>Kingdom Identity</option>
+                    </select>
+                  </label>
+                  <label className="block space-y-1.5 text-xs text-[#aaa39a]">
+                    YouTube video ID
+                    <input
+                      required
+                      value={sermonYoutubeId}
+                      onChange={(event) =>
+                        setSermonYoutubeId(event.target.value)
+                      }
+                      className={inputClass}
+                      placeholder="e.g. b9L3V3lQ38A"
+                    />
+                  </label>
+                  <label className="block space-y-1.5 text-xs text-[#aaa39a]">
+                    Description
+                    <textarea
+                      rows={4}
+                      value={sermonDescription}
+                      onChange={(event) =>
+                        setSermonDescription(event.target.value)
+                      }
+                      className={inputClass}
+                    />
+                  </label>
+                  <button
+                    disabled={sermonSaving}
+                    className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#c8a97e] px-4 text-sm font-semibold text-[#100f0e] transition hover:bg-[#dec49d] disabled:opacity-50"
+                  >
+                    <Plus className="size-4" />
+                    {sermonSaving ? "Publishing…" : "Publish sermon"}
+                  </button>
+                </form>
+              </div>
+              <div className={`${panelClass} overflow-hidden`}>
+                <div className="border-b border-white/[0.07] px-5 py-4">
+                  <h3 className="text-sm font-semibold">Published sermons</h3>
+                  <p className="mt-1 text-xs text-[#8c857c]">
+                    {sermons.length} in the library
+                  </p>
+                </div>
+                {sermons.length ? (
+                  <div className="divide-y divide-white/[0.06]">
+                    {sermons.map((sermon) => (
+                      <div
+                        key={sermon.id}
+                        className="flex items-center justify-between gap-3 px-5 py-4"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium">
+                            {sermon.title}
+                          </p>
+                          <p className="mt-1 text-xs text-[#8c857c]">
+                            {formatDate(sermon.date)} · {sermon.topic}
+                          </p>
+                        </div>
+                        <a
+                          href={`/sermons/${sermon.slug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label={`View ${sermon.title}`}
+                          className="text-[#c8a97e] hover:text-[#dec49d]"
+                        >
+                          <ArrowUpRight className="size-4" />
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState
+                    title="No sermons published"
+                    detail="Your published teachings will be listed here."
+                  />
+                )}
+              </div>
+            </section>
+          )}
+        </main>
+      </div>
     </div>
   );
 }

@@ -70,7 +70,7 @@ export default function Footer() {
             </Link>
             <div className="space-y-3">
               <h4 className="text-[11px] uppercase tracking-[0.2em] text-[#f7f4ee] font-semibold">
-                Connect with Tolucci
+                Connect with Evangelist Tolucci
               </h4>
               <SocialLinks />
             </div>

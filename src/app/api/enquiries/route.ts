@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getEnquiries, updateEnquiryStatus } from '@/lib/storage';
+import { deleteEnquiry, getEnquiries, updateEnquiryStatus } from '@/lib/storage';
 import { ContactEnquiry } from '@/types';
 
 export async function GET() {
@@ -27,5 +27,21 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Enquiry not found' }, { status: 404 });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update enquiry' }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { id } = await req.json();
+    if (!id) {
+      return NextResponse.json({ error: 'Enquiry ID is required' }, { status: 400 });
+    }
+    const success = deleteEnquiry(id);
+    if (success) {
+      return NextResponse.json({ success: true, id });
+    }
+    return NextResponse.json({ error: 'Enquiry not found' }, { status: 404 });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to delete enquiry' }, { status: 500 });
   }
 }

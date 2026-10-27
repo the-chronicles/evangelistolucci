@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import SubscriptionDialog from "@/components/SubscriptionDialog";
-import { AudioPlayerProvider } from "@/components/AudioPlayerContext";
-import AudioPlayerBar from "@/components/AudioPlayerBar";
+import SiteShell from "@/components/SiteShell";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -59,13 +55,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${cormorant.variable} ${plusJakarta.variable}`}>
       <body className="bg-[#0f0e0d] text-[#f7f4ee] font-sans antialiased selection:bg-[#c8a97e] selection:text-[#0f0e0d] min-h-screen flex flex-col justify-between">
-        <AudioPlayerProvider>
-          <Navbar />
-          <main className="flex-1 pt-20">{children}</main>
-          <Footer />
-          <AudioPlayerBar />
-          <SubscriptionDialog />
-        </AudioPlayerProvider>
+        <SiteShell>{children}</SiteShell>
       </body>
     </html>
   );

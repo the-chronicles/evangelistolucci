@@ -37,24 +37,7 @@ function writeJsonFile<T>(filename: string, data: T): void {
 
 // Subscribers Store
 export function getSubscribers(): Subscriber[] {
-  return readJsonFile<Subscriber[]>('subscribers.json', [
-    {
-      id: 'sub-1',
-      name: 'Adewale Johnson',
-      email: 'adewale.j@example.com',
-      preferences: { dailyDevotional: true, ministryNewsletter: true },
-      subscribedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-      source: 'first_visit_modal'
-    },
-    {
-      id: 'sub-2',
-      name: 'Grace Oladipo',
-      email: 'grace.o@example.com',
-      preferences: { dailyDevotional: true, ministryNewsletter: false },
-      subscribedAt: new Date(Date.now() - 86400000 * 1).toISOString(),
-      source: 'devotional_page'
-    }
-  ]);
+  return readJsonFile<Subscriber[]>('subscribers.json', []);
 }
 
 export function addSubscriber(sub: Omit<Subscriber, 'id' | 'subscribedAt'>): { success: boolean; isNew: boolean; message: string } {
@@ -80,34 +63,7 @@ export function addSubscriber(sub: Omit<Subscriber, 'id' | 'subscribedAt'>): { s
 
 // Contact Enquiries Store
 export function getEnquiries(): ContactEnquiry[] {
-  return readJsonFile<ContactEnquiry[]>('enquiries.json', [
-    {
-      id: 'enq-101',
-      name: 'Pastor Samuel Kalu',
-      email: 'pastor.samuel@revivalassembly.org',
-      phone: '+234 803 123 4567',
-      category: 'preach_minister',
-      organization: 'Revival Assembly Church, Lagos',
-      eventDate: '2026-11-15',
-      location: 'Victoria Island, Lagos, Nigeria',
-      message: 'Greetings in Jesus name. We would like to officially invite Evangelist Tolucci to minister at our upcoming 3-day Annual Believers Camp Meeting.',
-      submittedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-      status: 'new'
-    },
-    {
-      id: 'enq-102',
-      name: 'Deborah Okoro',
-      email: 'deborah@worshipnetwork.uk',
-      phone: '+44 7700 900123',
-      category: 'conference',
-      organization: 'UK Kingdom Worship Collective',
-      eventDate: '2026-12-05',
-      location: 'London, United Kingdom',
-      message: 'We are organizing the European Kingdom Sounds Summit and would love Evangelist Tolucci to keynote on prophetic worship and revival songs.',
-      submittedAt: new Date(Date.now() - 86400000 * 4).toISOString(),
-      status: 'reviewed'
-    }
-  ]);
+  return readJsonFile<ContactEnquiry[]>('enquiries.json', []);
 }
 
 export function addEnquiry(enquiry: Omit<ContactEnquiry, 'id' | 'submittedAt' | 'status'>): ContactEnquiry {
@@ -132,6 +88,26 @@ export function updateEnquiryStatus(id: string, status: ContactEnquiry['status']
     return true;
   }
   return false;
+}
+
+export function deleteEnquiry(id: string): boolean {
+  const current = getEnquiries();
+  const filtered = current.filter(e => e.id !== id);
+  if (filtered.length === current.length) {
+    return false;
+  }
+  writeJsonFile('enquiries.json', filtered);
+  return true;
+}
+
+export function deleteSubscriber(id: string): boolean {
+  const current = getSubscribers();
+  const filtered = current.filter(s => s.id !== id);
+  if (filtered.length === current.length) {
+    return false;
+  }
+  writeJsonFile('subscribers.json', filtered);
+  return true;
 }
 
 // Devotionals Store

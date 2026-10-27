@@ -60,10 +60,10 @@ export default function HomePage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#9e978e] leading-relaxed max-w-lg font-sans">
-              Evangelist Tolulope Toluwase (Tolucci) is an evangelist, prophetic
-              psalmist, and the visionary leader of The MASS Movement. Dedicated
-              to rebuilding personal and territorial prayer altars through
-              apostolic teaching, prophetic chants, and city storms.
+              Evangelist Tolulope Toluwase (Tolucci) is an ordained evangelist
+              cum missionary apostle, an astute teacher of God's word, a Fiery
+              Revivalist, Creative media production mogul and a Prophetic
+              Psalmist.
             </p>
 
             {/* CTAs */}

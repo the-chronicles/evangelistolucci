@@ -1,35 +1,12 @@
 [
   {
-    "name": "Test Visitor",
-    "email": "test.visitor@kingdom.org",
+    "email": "ccc@gmail.com",
     "preferences": {
       "dailyDevotional": true,
       "ministryNewsletter": true
     },
-    "source": "first_visit_modal",
-    "id": "sub-1792704830554-lc11",
-    "subscribedAt": "2026-10-22T21:33:50.554Z"
-  },
-  {
-    "id": "sub-1",
-    "name": "Adewale Johnson",
-    "email": "adewale.j@example.com",
-    "preferences": {
-      "dailyDevotional": true,
-      "ministryNewsletter": true
-    },
-    "subscribedAt": "2026-10-19T21:33:50.553Z",
-    "source": "first_visit_modal"
-  },
-  {
-    "id": "sub-2",
-    "name": "Grace Oladipo",
-    "email": "grace.o@example.com",
-    "preferences": {
-      "dailyDevotional": true,
-      "ministryNewsletter": false
-    },
-    "subscribedAt": "2026-10-21T21:33:50.553Z",
-    "source": "devotional_page"
+    "source": "footer",
+    "id": "sub-1793115304111-1t37",
+    "subscribedAt": "2026-10-27T15:35:04.111Z"
   }
 ]

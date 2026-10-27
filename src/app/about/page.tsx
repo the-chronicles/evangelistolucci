@@ -38,52 +38,56 @@ export default function AboutPage() {
         {/* Right Column: Editorial Text */}
         <div className="lg:col-span-7 space-y-8 text-sm sm:text-base text-[#d6cec3]/90 leading-relaxed font-sans">
           <p className="first-letter:font-serif first-letter:text-6xl first-letter:text-[#c8a97e] first-letter:float-left first-letter:mr-3 first-letter:leading-none">
-            Toluwase Tolulope Timothy, popularly known as Evangelist Tolucci, is
-            an ordained minister, an astute teacher of God&apos;s word, a fiery
-            revivalist, and a prophetic psalmist.
+            Toluwase Tolulope Timothy more widely known as “Evangelist Tolucci”
+            is an ordained minister cum missionary apostle, an astute teacher of
+            God's word, a Fiery Revivalist, Creative media production mogul and
+            a Prophetic Psalmist.
           </p>
 
           <p>
-            He is the Founder and President of the multi-expression ministry
-            MASS Global Impact Foundation, popularly known as The MASS Movement
-            in and around South-West Nigeria.
+            He is the Founder/President of the Multi-Expression ministry known
+            as MASS GLOBAL IMPACT FOUNDATION popularly known as THE MASS
+            MOVEMENT in and around South-West of Nigeria.
           </p>
 
           <p>
-            He is a visionary and transformational leader committed to raising a
+            He is a visionary and transformational leader committed to raising a
             generation of believers rooted in kingdom values as they fulfill
-            God&apos;s mandate across the mountains of influence.
+            God’s mandate across the mountains of influence.
           </p>
 
           <p>
-            He is an astute professional with a background in Industrial
-            Mathematics, an MBA in Financial Management, and years of experience
-            in Corporate Finance, Banking, and Governance.
+            He's an astute professional with a background in Industrial
+            Mathematics, an MBA in Financial Management with consummate years of
+            experience in Corporate Finance, Banking and Governance.
           </p>
 
           <p>
-            His multimedia production competencies are widely acknowledged in
-            Brand Activations, Entertainment Productions, Broadcast, and kingdom
-            media.
+            He is a British - Council Creative Lives Scholar in partnership with
+            the Enterprise Development Center of Lagos Business School and his
+            robust multimedia production competencies are widely acknowledged on
+            notable industry imprints like Brand Activations, Entertainment
+            Productions, Broadcast and kingdom media.
           </p>
 
           <p>
             Evangelist Tolucci transitioned from the corporate world into
             full-time ministry following a clear conviction toward his kingdom
-            assignment. He is widely known for the MASS Prophetic and Revival
-            Crusades held in different cities and campuses in and around
-            South-West Nigeria.
+            assignment and he is widely known for the MASS Prophetic and Revival
+            crusades which holds in different cities and campuses in and around
+            southwest Nigeria
           </p>
 
           <p>
-            He is the Proprietor of MASS Discipleship School, with campuses in
-            several cities, where he grooms young believers for systems,
-            leadership, and governance.
+            He is the Proprietor of MASS Discipleship School with campuses in
+            several cities where he grooms young believers for systems,
+            leadership and governance.
           </p>
 
           <p>
-            He is married to Ibukunoluwa, a global wealth manager, analyst, and
-            advisor. Together they have two teenagers, Zoe and Noelle.
+            He is married to Ibukunoluwa, a Global Wealth and Investment
+            Manager, Analyst and Advisor. Together they have two teenagers - Zoe
+            and Noelle.
           </p>
         </div>
       </div>
