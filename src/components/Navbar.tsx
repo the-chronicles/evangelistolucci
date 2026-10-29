@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { name: "Devotional", href: "/devotional" },
   { name: "Books", href: "/books" },
   { name: "Music", href: "/music" },
+  { name: "Movies", href: "/movies" },
   // { name: 'Contact', href: '/contact' },
 ];
 
